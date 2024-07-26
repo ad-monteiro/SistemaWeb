@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Paciente</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center my-4">Buscar Paciente</h2>
+        <form method="POST" class="mb-4">
+            <div class="form-group">
+                <input type="text" name="query" class="form-control" placeholder="Digite o nome do paciente" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Buscar</button>
+        </form>
+        {% if pacientes %}
+        <ul class="list-group">
+            {% for paciente in pacientes %}
+            <li class="list-group-item">
+                <a href="{{ url_for('main.visualizar_paciente', id=paciente.id) }}">{{ paciente.nome }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</body>
+</html>

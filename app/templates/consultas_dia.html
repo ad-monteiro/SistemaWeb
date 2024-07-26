@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultas do Dia</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='images/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .content-container {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container content-container">
+        <h2 class="text-center my-4">Consultas do Dia - {{ date.strftime('%d/%m/%Y') }}</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Especialidade</th>
+                    <th>Hora</th>
+                    <th>Procedimento</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consulta in consultas %}
+                <tr>
+                    <td>{{ consulta.paciente.nome }}</td>
+                    <td>{{ consulta.especialidade }}</td>
+                    <td>{{ consulta.hora.strftime('%H:%M') }}</td>
+                    <td>{{ consulta.procedimento.nome }}</td>
+                    <td>{{ consulta.status }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('main.atualizar_status_consulta', id=consulta.id) }}" style="display:inline;">
+                            <input type="hidden" name="status" value="em andamento">
+                            <button type="submit" class="btn btn-warning btn-sm">Em Andamento</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('main.atualizar_status_consulta', id=consulta.id) }}" style="display:inline;">
+                            <input type="hidden" name="status" value="finalizado">
+                            <button type="submit" class="btn btn-success btn-sm">Finalizado</button>
+                        </form>
+                        <a href="{{ url_for('main.gerar_receita', id=consulta.id) }}" class="btn btn-primary btn-sm mt-1">Gerar Receita</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Voltar ao Calendário</a>
+    </div>
+</body>
+</html>

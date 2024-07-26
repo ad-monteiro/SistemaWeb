@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento de Consulta</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='images/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            margin-top: 50px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-control {
+            border-radius: 5px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .input-group-append .btn {
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center my-4">Agendamento de Consulta</h2>
+        <form method="POST" action="{{ url_for('main.agendar_consulta') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.paciente_id(class="form-control d-none", id="paciente_id") }}
+                <label for="paciente">Paciente</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="paciente" readonly>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#pacienteModal">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                {{ form.especialidade.label(class="form-control-label") }}
+                {{ form.especialidade(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.data.label(class="form-control-label") }}
+                {{ form.data(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.hora.label(class="form-control-label") }}
+                {{ form.hora(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.procedimento_id(class="form-control d-none", id="procedimento_id") }}
+                <label for="procedimento">Procedimento</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="procedimento" readonly>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#procedimentoModal">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary btn-block") }}
+            </div>
+        </form>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-block mt-3">Voltar</a>
+    </div>
+
+    <!-- Modal de Pacientes -->
+    <div class="modal fade" id="pacienteModal" tabindex="-1" role="dialog" aria-labelledby="pacienteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pacienteModalLabel">Pesquisar Paciente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <input type="text" id="pesquisa_paciente" class="form-control" placeholder="Nome do Paciente">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="buscarPaciente">Buscar</button>
+                    <ul id="resultadoPesquisaPaciente" class="list-group mt-3"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Procedimentos -->
+    <div class="modal fade" id="procedimentoModal" tabindex="-1" role="dialog" aria-labelledby="procedimentoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="procedimentoModalLabel">Pesquisar Procedimento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <input type="text" id="pesquisa_procedimento" class="form-control" placeholder="Nome do Procedimento">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="buscarProcedimento">Buscar</button>
+                    <ul id="resultadoPesquisaProcedimento" class="list-group mt-3"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Buscar paciente
+            $('#buscarPaciente').click(function() {
+                const query = $('#pesquisa_paciente').val();
+                $.ajax({
+                    url: "{{ url_for('main.pesquisar_paciente') }}",
+                    method: "GET",
+                    data: { query: query },
+                    success: function(data) {
+                        $('#resultadoPesquisaPaciente').empty();
+                        data.forEach(function(paciente) {
+                            $('#resultadoPesquisaPaciente').append(
+                                `<li class="list-group-item" data-id="${paciente.id}" data-nome="${paciente.nome}">
+                                    ${paciente.nome}
+                                </li>`
+                            );
+                        });
+                    }
+                });
+            });
+
+            // Selecionar paciente
+            $(document).on('click', '#resultadoPesquisaPaciente li', function() {
+                const pacienteId = $(this).data('id');
+                const pacienteNome = $(this).data('nome');
+                $('#paciente').val(pacienteNome);
+                $('#paciente_id').val(pacienteId);  // Definindo o ID do paciente no campo oculto
+                $('#pacienteModal').modal('hide');
+            });
+
+            // Buscar procedimento
+            $('#buscarProcedimento').click(function() {
+                const query = $('#pesquisa_procedimento').val();
+                $.ajax({
+                    url: "{{ url_for('main.pesquisar_procedimento') }}",
+                    method: "GET",
+                    data: { query: query },
+                    success: function(data) {
+                        $('#resultadoPesquisaProcedimento').empty();
+                        data.forEach(function(procedimento) {
+                            $('#resultadoPesquisaProcedimento').append(
+                                `<li class="list-group-item" data-id="${procedimento.id}" data-nome="${procedimento.nome}">
+                                    ${procedimento.nome}
+                                </li>`
+                            );
+                        });
+                    }
+                });
+            });
+
+            // Selecionar procedimento
+            $(document).on('click', '#resultadoPesquisaProcedimento li', function() {
+                const procedimentoId = $(this).data('id');
+                const procedimentoNome = $(this).data('nome');
+                $('#procedimento').val(procedimentoNome);
+                $('#procedimento_id').val(procedimentoId);  // Definindo o ID do procedimento no campo oculto
+                $('#procedimentoModal').modal('hide');
+            });
+        });
+    </script>
+</body>
+</html>

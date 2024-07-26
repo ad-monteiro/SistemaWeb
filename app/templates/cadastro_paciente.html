@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pacientes</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='images/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            margin-top: 50px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-control {
+            border-radius: 5px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center my-4">Cadastro de Pacientes</h2>
+        <form method="POST" action="{{ url_for('main.cadastro_paciente') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.nome.label(class="form-control-label") }}
+                    {{ form.nome(class="form-control") }}
+                </div>
+                <div class="form-group col-md-6">
+                    {{ form.cpf_cnpj.label(class="form-control-label") }}
+                    {{ form.cpf_cnpj(class="form-control cpf-mask") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    {{ form.numero_residencia.label(class="form-control-label") }}
+                    {{ form.numero_residencia(class="form-control") }}
+                </div>
+                <div class="form-group col-md-4">
+                    {{ form.cep.label(class="form-control-label") }}
+                    {{ form.cep(class="form-control") }}
+                </div>
+                <div class="form-group col-md-6">
+                    {{ form.endereco.label(class="form-control-label") }}
+                    {{ form.endereco(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.cidade.label(class="form-control-label") }}
+                    {{ form.cidade(class="form-control") }}
+                </div>
+                <div class="form-group col-md-2">
+                    {{ form.estado.label(class="form-control-label") }}
+                    {{ form.estado(class="form-control") }}
+                </div>
+                <div class="form-group col-md-4">
+                    {{ form.data_nascimento.label(class="form-control-label") }}
+                    {{ form.data_nascimento(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.genero.label(class="form-control-label") }}
+                    {{ form.genero(class="form-control") }}
+                </div>
+                <div class="form-group col-md-6">
+                    {{ form.telefone.label(class="form-control-label") }}
+                    {{ form.telefone(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.email.label(class="form-control-label") }}
+                    {{ form.email(class="form-control") }}
+                </div>
+                <div class="form-group col-md-6">
+                    {{ form.convenio.label(class="form-control-label") }}
+                    {{ form.convenio(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.numero_convenio.label(class="form-control-label") }}
+                    {{ form.numero_convenio(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary btn-block") }}
+            </div>
+        </form>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-block mt-3">Voltar ao Menu</a>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $('.cpf-mask').mask('000.000.000-00', {reverse: true});
+
+            $('#cep').on('blur', function(){
+                var cep = $(this).val().replace(/\D/g, '');
+                if (cep.length === 8) {
+                    $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
+                        if (!data.erro) {
+                            $('#endereco').val(data.logradouro);
+                            $('#bairro').val(data.bairro);
+                            $('#cidade').val(data.localidade);
+                            $('#estado').val(data.uf);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

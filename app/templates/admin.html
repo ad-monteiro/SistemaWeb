@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='images/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        #wrapper {
+            display: flex;
+            align-items: stretch;
+        }
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: 250px;
+            background-color: rgba(248, 249, 250, 0.8);
+            flex-shrink: 0;
+            transition: margin 0.3s;
+        }
+        #page-content-wrapper {
+            flex: 1;
+            transition: margin 0.3s;
+        }
+        .list-group-item {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        #wrapper.toggled #sidebar-wrapper {
+            margin-left: 0;
+        }
+        #wrapper.toggled #page-content-wrapper {
+            margin-left: 250px;
+        }
+        .fullcalendar-container {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        #calendar {
+            max-width: 900px;
+            margin: 40px auto;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-light border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading"></div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('main.cadastro_paciente') }}" class="list-group-item list-group-item-action">Cadastro de Pacientes</a>
+                <a href="{{ url_for('main.listar_pacientes') }}" class="list-group-item list-group-item-action">Lista de Pacientes</a>
+                <a href="{{ url_for('main.agendar_consulta') }}" class="list-group-item list-group-item-action">Agendamento</a>
+                <a href="{{ url_for('main.buscar_paciente') }}" class="list-group-item list-group-item-action">Prontuário</a>
+                <a href="{{ url_for('main.logout') }}" class="list-group-item list-group-item-action">Logout</a>
+            </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="btn btn-primary" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+            <div class="container-fluid fullcalendar-container">
+                <h1 class="mt-4">Consultas Agendadas</h1>
+                <div id="calendar"></div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
+
+    <!-- Menu Toggle Script -->
+    <script>
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
+        $(document).ready(function() {
+            $('#calendar').fullCalendar({
+                locale: 'pt-br', // Definindo o idioma do calendário
+                events: '/consultas',
+                dayMaxEvents: 4, // Limita o número máximo de eventos visíveis por dia
+                dayClick: function(date, jsEvent, view) {
+                    window.location.href = '/consultas_dia?date=' + date.format();
+                },
+                eventRender: function(event, element) {
+                    // Customize the event color based on the status
+                    if (event.status === 'agendado') {
+                        element.css('background-color', '#007bff'); // Azul
+                    } else if (event.status === 'em_andamento') {
+                        element.css('background-color', '#ffc107'); // Amarelo
+                    } else if (event.status === 'finalizado') {
+                        element.css('background-color', '#28a745'); // Verde
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

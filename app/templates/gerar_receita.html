@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Receita</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='images/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            margin-top: 50px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .medicamento-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .medicamento-item input {
+            margin-right: 10px;
+        }
+        .medicamento-item button {
+            margin-left: 10px;
+        }
+        .autocomplete-suggestions {
+            border: 1px solid #ccc;
+            background: #fff;
+            overflow: auto;
+            position: absolute;
+            z-index: 9999;
+        }
+        .autocomplete-suggestion {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .autocomplete-suggestion:hover {
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center my-4">Gerar Receita para Consulta - {{ consulta.id }}</h2>
+        <div class="mb-4">
+            <p><strong>Paciente:</strong> {{ consulta.paciente.nome }}</p>
+            <p><strong>Procedimento:</strong> {{ consulta.procedimento.nome }}</p>
+        </div>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="instrucoes">Instruções:</label>
+                {{ form.instrucoes(class_='form-control') }}
+            </div>
+            <div class="form-group">
+                <label for="medicamentos">Medicamentos:</label>
+                <div id="medicamentos-container">
+                    {% for field in form.medicamentos %}
+                    <div class="medicamento-item">
+                        {{ field.csrf_token }}
+                        <div class="input-group">
+                            {{ field.medicamento_id(class_='form-control medicamento', placeholder='Medicamento') }}
+                        </div>
+                        {{ field.quantidade(class_='form-control', placeholder='Quantidade', style='width: 100px;') }}
+                        <button type="button" class="btn btn-danger" onclick="removeMedicamento(this)"><i class="fas fa-trash"></i></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-success" onclick="addMedicamento()"><i class="fas fa-plus"></i> Adicionar Medicamento</button>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Gerar Receita</button>
+            <a href="{{ url_for('main.consultas_dia', date=consulta.data.strftime('%Y-%m-%d')) }}" class="btn btn-secondary btn-block mt-3">Voltar</a>
+            {% if consulta.receitas %}
+            <a href="{{ url_for('main.imprimir_receita', id=consulta.receitas[-1].id) }}" class="btn btn-success btn-block mt-3" target="_blank">Imprimir Receita</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <script>
+        let medicamentoCount = {{ form.medicamentos|length }};
+        const csrfToken = "{{ form.csrf_token._value() }}"; // Obtém o token CSRF do formulário
+
+        function addMedicamento() {
+            medicamentoCount++;
+            const container = document.getElementById('medicamentos-container');
+            const newMedicamentoHtml = `
+                <div class="medicamento-item">
+                    <input type="hidden" name="medicamentos-${medicamentoCount}-csrf_token" value="${csrfToken}">
+                    <div class="input-group">
+                        <input type="text" name="medicamentos-${medicamentoCount}-medicamento_id" id="medicamentos-${medicamentoCount}-medicamento_id" class="form-control medicamento" placeholder="Medicamento">
+                    </div>
+                    <input type="text" name="medicamentos-${medicamentoCount}-quantidade" id="medicamentos-${medicamentoCount}-quantidade" class="form-control" placeholder="Quantidade" style="width: 100px;">
+                    <button type="button" class="btn btn-danger" onclick="removeMedicamento(this)"><i class="fas fa-trash"></i></button>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', newMedicamentoHtml);
+            bindAutoComplete(`#medicamentos-${medicamentoCount}-medicamento_id`);
+        }
+
+        function removeMedicamento(button) {
+            button.parentElement.remove();
+        }
+
+        function bindAutoComplete(selector) {
+            $(selector).on('input', function() {
+                const query = $(this).val();
+                const target = $(this);
+                if (query.length > 2) { // Fetch suggestions for queries longer than 2 characters
+                    $.ajax({
+                        url: "{{ url_for('main.pesquisar_medicamento') }}",
+                        method: "GET",
+                        data: { query: query },
+                        success: function(data) {
+                            let suggestions = data.map(item => `<div class="autocomplete-suggestion" data-id="${item.id}" data-nome="${item.nome}">${item.nome}</div>`).join('');
+                            let suggestionsContainer = $(`<div class="autocomplete-suggestions">${suggestions}</div>`);
+                            target.next('.autocomplete-suggestions').remove(); // Remove previous suggestions
+                            target.after(suggestionsContainer);
+                            $('.autocomplete-suggestion').on('click', function() {
+                                target.val($(this).data('nome'));
+                                target.next('.autocomplete-suggestions').remove();
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        // Bind autocomplete to initial medicamento fields
+        $('.medicamento').each(function() {
+            bindAutoComplete(`#${$(this).attr('id')}`);
+        });
+    </script>
+</body>
+</html>

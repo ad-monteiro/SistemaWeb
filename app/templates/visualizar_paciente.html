@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Paciente</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='images/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            margin: 0;
+        }
+        .header a {
+            font-size: 1rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .details, .prontuario {
+            margin-bottom: 20px;
+        }
+        .details p, .prontuario p {
+            margin: 0;
+        }
+        .details p + p, .prontuario p + p {
+            margin-top: 10px;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Detalhes do Paciente - {{ paciente.nome }}</h2>
+            <a href="{{ url_for('main.editar_paciente', id=paciente.id) }}">Editar Paciente</a>
+        </div>
+        <div class="details">
+            <p><strong>CPF/CNPJ:</strong> {{ paciente.cpf_cnpj }}</p>
+            <p><strong>CEP:</strong> {{ paciente.cep }}</p>
+            <p><strong>Endereço:</strong> {{ paciente.endereco }}</p>
+            <p><strong>Número:</strong> {{ paciente.numero_residencia }}</p>
+            <p><strong>Cidade:</strong> {{ paciente.cidade }}</p>
+            <p><strong>Estado:</strong> {{ paciente.estado }}</p>
+            <p><strong>Telefone:</strong> {{ paciente.telefone }}</p>
+            <p><strong>Email:</strong> {{ paciente.email }}</p>
+            <p><strong>Data de Nascimento:</strong> {{ paciente.data_nascimento.strftime('%d/%m/%Y') if paciente.data_nascimento else 'N/A' }}</p>
+            <p><strong>Gênero:</strong> 
+                {% if paciente.genero == 'M' %}
+                    Masculino
+                {% elif paciente.genero == 'F' %}
+                    Feminino
+                {% elif paciente.genero == 'O' %}
+                    Outros
+                {% else %}
+                    Não especificado
+                {% endif %}
+            </p>
+            <p><strong>Convênio:</strong> {{ paciente.convenio }}</p>
+            <p><strong>Número do Convênio:</strong> {{ paciente.numero_convenio }}</p>
+        </div>
+        <h3 class="my-4">Prontuário</h3>
+        <div class="prontuario">
+            {% if consultas %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Especialidade</th>
+                        <th>Procedimento</th>
+                        <th>Status</th>
+                        <th>Receitas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for consulta in consultas %}
+                    <tr>
+                        <td>{{ consulta.data.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ consulta.hora.strftime('%H:%M') }}</td>
+                        <td>{{ consulta.especialidade }}</td>
+                        <td>{{ consulta.procedimento.nome }}</td>
+                        <td>{{ consulta.status }}</td>
+                        <td>
+                            {% if consulta.receitas %}
+                            <ul>
+                                {% for receita in consulta.receitas %}
+                                <li>
+                                    <a href="{{ url_for('main.imprimir_receita', id=receita.id) }}" target="_blank">Receita {{ receita.id }}</a>    
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            Nenhuma receita
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Este paciente não possui consultas registradas.</p>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-block mt-3">Voltar ao Menu</a>
+    </div>
+</body>
+</html>
